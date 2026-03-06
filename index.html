@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Àdùnní's Word Search</title>
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #4ecdc4;
+            --bg: #f7f1e3;
+            --text: #2c3e50;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 { color: var(--primary); margin-bottom: 5px; }
+        #game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1000px;
+        }
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(15, 30px);
+            grid-template-rows: repeat(15, 30px);
+            gap: 2px;
+            background: #ccc;
+            padding: 5px;
+            border-radius: 8px;
+            user-select: none;
+            touch-action: none;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: 0.2s;
+        }
+        .cell.selected { background: var(--secondary); color: white; }
+        .cell.found { background: #95afc0; color: white; }
+        
+        #sidebar {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .score-board { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; }
+        .hint-item {
+            margin-bottom: 10px;
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .hint-item.completed {
+            text-decoration: line-through;
+            color: #aaa;
+            background: #f0fff0;
+        }
+        @media (max-width: 600px) {
+            #grid { grid-template-columns: repeat(15, 22px); grid-template-rows: repeat(15, 22px); }
+            .cell { width: 22px; height: 22px; font-size: 0.7rem; }
+            #sidebar { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>A Special Word Search</h1>
+    <div class="score-board">Score: <span id="score">0</span> / 18</div>
+
+    <div id="game-container">
+        <div id="grid"></div>
+
+        <div id="sidebar">
+            <h3>Hints</h3>
+            <div id="hint-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const wordList = {
+            "PHOENIX": "City in the state where you and I met for the first time",
+            "CALIFORNIA": "The state where Àdùnní lives, about an hour from Los Angeles",
+            "INDIANA": "The state where your friend and dad live",
+            "KIND": "What is the act of what you did on your birthday called",
+            "SWEET": "Bees produce honey, but my Àdùnní is equally what",
+            "FAVORITE": "I often call you my '_____ person' during our conversations",
+            "SMART": "I often regard you as '_____', along with being witty and beautiful",
+            "LOVE": "I am in '_____' with you",
+            "KISSES": "What do you always want a minimum of two from me",
+            "HAPPY": "How I feel since I met you",
+            "GRATEFUL": "I am '_____' to God for bringing you into my life",
+            "TWIN": "You once have a '_____' sister",
+            "CARAMEL": "The nickname of your third nibling is '____'",
+            "CUPCAKE": "The nickname of your second nibling is '____'",
+            "COOKIE": "The nickname of your first nibling is '____'",
+            "FRIEND": "What did you introduce bussy to me as",
+            "TRAVEL": "What you said she likes to do a lot, having visited many places",
+            "FOOD": "One of the best things you like is exploring new '____'"
+        };
+
+        // Grid data from your PDF Answer Key
+        const rawGrid = [
+            "TCUPCAKEJKISSES","XRLOVEBSRVPCXFK","YKAHLGGRATEFULP","PFLNPMYHAHAPYCH","HCRIOYKPNFOOOHO","OIETVOTARPHNRAE","EFLNMTAVRAREPMN","NJLDSURVTEZILMI","IIAILRETEKEANIX","XNTNEIFAVORITED","CDDPTEFRNCOOKAI","AQXREIDREDSMART","LBKINDWESWEETSU","IWOTRAVELBFTTWL","FAHAFHOKINDYTWN"
+        ];
+
+        let score = 0;
+        let selectedCells = [];
+        let isMouseDown = false;
+        const foundWords = new Set();
+
+        const gridElement = document.getElementById('grid');
+        const hintListElement = document.getElementById('hint-list');
+        const scoreElement = document.getElementById('score');
+
+        // Initialize Hints
+        Object.keys(wordList).forEach(word => {
+            const div = document.createElement('div');
+            div.className = 'hint-item';
+            div.id = `hint-${word}`;
+            div.textContent = wordList[word];
+            hintListElement.appendChild(div);
+        });
+
+        // Initialize Grid
+        rawGrid.forEach((row, rIdx) => {
+            row.split('').forEach((char, cIdx) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.textContent = char;
+                cell.dataset.row = rIdx;
+                cell.dataset.col = cIdx;
+                
+                cell.addEventListener('pointerdown', startSelection);
+                cell.addEventListener('pointerenter', enterSelection);
+                gridElement.appendChild(cell);
+            });
+        });
+
+        window.addEventListener('pointerup', endSelection);
+
+        function startSelection(e) {
+            isMouseDown = true;
+            selectCell(e.target);
+        }
+
+        function enterSelection(e) {
+            if (isMouseDown) selectCell(e.target);
+        }
+
+        function selectCell(cell) {
+            if (!cell.classList.contains('cell') || cell.classList.contains('found')) return;
+            if (!selectedCells.includes(cell)) {
+                cell.classList.add('selected');
+                selectedCells.push(cell);
+            }
+        }
+
+        function endSelection() {
+            isMouseDown = false;
+            const currentString = selectedCells.map(c => c.textContent).join('');
+            const reversedString = currentString.split('').reverse().join('');
+            
+            let found = null;
+            if (wordList[currentString] && !foundWords.has(currentString)) found = currentString;
+            else if (wordList[reversedString] && !foundWords.has(reversedString)) found = reversedString;
+
+            if (found) {
+                selectedCells.forEach(c => {
+                    c.classList.remove('selected');
+                    c.classList.add('found');
+                });
+                foundWords.add(found);
+                document.getElementById(`hint-${found}`).classList.add('completed');
+                score++;
+                scoreElement.textContent = score;
+                if(score === 18) alert("You found them all! I'm so lucky to have you. ❤️");
+            } else {
+                selectedCells.forEach(c => c.classList.remove('selected'));
+            }
+            selectedCells = [];
+        }
+    </script>
+</body>
+</html>
