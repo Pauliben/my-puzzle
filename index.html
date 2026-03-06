@@ -3,685 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Love Me - Word Search Puzzle</title>
+    <title>Love Me - Interactive Puzzle</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --accent: #ff6b6b;
+            --bg: #f8f9fa;
         }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             min-height: 100vh;
-            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 20px;
+            margin: 0;
         }
-
         .container {
             background: white;
             border-radius: 20px;
             padding: 30px;
-            max-width: 1400px;
+            max-width: 1200px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        h1 {
-            text-align: center;
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-            font-weight: bold;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-
-        .game-area {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 30px;
-        }
-
-        .puzzle-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(30, 25px);
-            gap: 2px;
-            margin-bottom: 20px;
-            user-select: none;
-        }
-
-        .cell {
-            width: 25px;
-            height: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            cursor: pointer;
-            background: white;
-            transition: all 0.2s ease;
-        }
-
-        .cell:hover {
-            background: #f0f0f0;
-        }
-
-        .cell.selected {
-            background: #ffeb3b;
-            border-color: #fbc02d;
-        }
-
-        .cell.found {
-            background: #4caf50;
-            color: white;
-            border-color: #388e3c;
-        }
-
-        .sidebar {
-            width: 350px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
-
-        .score-board {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            border-radius: 15px;
-            color: white;
-        }
-
-        .score-board h2 {
-            margin-bottom: 15px;
-            font-size: 1.5em;
-        }
-
-        .score-item {
+        .header { text-align: center; }
+        .stats-bar {
             display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-size: 1.1em;
-        }
-
-        .score-value {
+            justify-content: space-around;
+            background: #f1f3f5;
+            padding: 15px;
+            border-radius: 10px;
             font-weight: bold;
-            font-size: 1.3em;
         }
-
-        .words-list {
-            background: #f5f5f5;
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+        }
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 5px;
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 12px;
+            user-select: none;
+            touch-action: none;
+        }
+        .cell {
+            aspect-ratio: 1;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cell.selected { background: var(--accent); color: white; transform: scale(0.9); }
+        .cell.found { background: #51cf66; color: white; }
+        
+        .hints-panel {
+            background: #f8f9fa;
             padding: 20px;
-            border-radius: 15px;
-            max-height: 500px;
+            border-radius: 12px;
+            max-height: 550px;
             overflow-y: auto;
         }
-
-        .words-list h3 {
-            margin-bottom: 15px;
-            color: #667eea;
-            font-size: 1.3em;
-        }
-
-        .word-item {
+        .hint-item {
+            margin-bottom: 12px;
             padding: 10px;
-            margin-bottom: 8px;
+            border-left: 4px solid var(--primary);
             background: white;
-            border-radius: 8px;
-            border: 2px solid #ddd;
-            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            transition: 0.3s;
         }
-
-        .word-item.found {
-            background: #4caf50;
-            color: white;
-            border-color: #388e3c;
+        .hint-item.completed {
+            border-left-color: #51cf66;
+            opacity: 0.6;
             text-decoration: line-through;
+            background: #f4fce3;
         }
-
-        .word-item .word-text {
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        .word-item .hint-text {
-            font-size: 0.9em;
-            color: #666;
-            font-style: italic;
-        }
-
-        .word-item.found .hint-text {
-            color: #e8f5e9;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            flex: 1;
-            min-width: 120px;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-        .celebration {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            z-index: 1000;
-            max-width: 500px;
-        }
-
-        .celebration.show {
-            display: block;
-            animation: popIn 0.5s ease;
-        }
-
-        @keyframes popIn {
-            0% {
-                transform: translate(-50%, -50%) scale(0.5);
-                opacity: 0;
-            }
-            100% {
-                transform: translate(-50%, -50%) scale(1);
-                opacity: 1;
-            }
-        }
-
-        .celebration h2 {
-            color: #4caf50;
-            font-size: 2.5em;
-            margin-bottom: 20px;
-        }
-
-        .celebration p {
-            font-size: 1.2em;
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-
-        .overlay.show {
-            display: block;
-        }
-
-        @media (max-width: 1200px) {
-            .game-area {
-                grid-template-columns: 1fr;
-            }
-
-            .sidebar {
-                width: 100%;
-            }
-
-            .grid {
-                grid-template-columns: repeat(30, 20px);
-            }
-
-            .cell {
-                width: 20px;
-                height: 20px;
-                font-size: 11px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .grid {
-                grid-template-columns: repeat(30, 15px);
-            }
-
-            .cell {
-                width: 15px;
-                height: 15px;
-                font-size: 9px;
-            }
-
-            h1 {
-                font-size: 1.8em;
-            }
-
-            .container {
-                padding: 20px;
-            }
+        @media (max-width: 900px) {
+            .main-content { grid-template-columns: 1fr; }
+            #grid { grid-template-columns: repeat(15, 25px); overflow-x: auto; }
+            .cell { width: 25px; height: 25px; font-size: 0.8rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>💝 Love Me 💝</h1>
-        <p class="subtitle">Find all the hidden words by selecting letters in sequence</p>
 
-        <div class="game-area">
-            <div class="puzzle-container">
-                <div class="grid" id="grid"></div>
-                <div class="controls">
-                    <button class="btn btn-secondary" onclick="clearSelection()">Clear Selection</button>
-                    <button class="btn btn-primary" onclick="resetGame()">Reset Game</button>
-                </div>
-            </div>
+<div class="container">
+    <div class="header">
+        <h1>Love Me Puzzle</h1>
+        <p>Find the hidden words using the hints below!</p>
+    </div>
 
-            <div class="sidebar">
-                <div class="score-board">
-                    <h2>🏆 Your Progress</h2>
-                    <div class="score-item">
-                        <span>Words Found:</span>
-                        <span class="score-value" id="wordsFound">0 / 18</span>
-                    </div>
-                    <div class="score-item">
-                        <span>Score:</span>
-                        <span class="score-value" id="score">0</span>
-                    </div>
-                    <div class="score-item">
-                        <span>Accuracy:</span>
-                        <span class="score-value" id="accuracy">100%</span>
-                    </div>
-                </div>
+    <div class="stats-bar">
+        <span>Words Found: <span id="found-count">0</span> / 18</span>
+        <span>Score: <span id="score">0</span></span>
+    </div>
 
-                <div class="words-list">
-                    <h3>📝 Words to Find (with Hints)</h3>
-                    <div id="wordsList"></div>
-                </div>
-            </div>
+    <div class="main-content">
+        <div id="grid"></div>
+        <div class="hints-panel">
+            <h3>Hints</h3>
+            <div id="hint-list"></div>
         </div>
     </div>
+</div>
 
-    <div class="overlay" id="overlay"></div>
-    <div class="celebration" id="celebration">
-        <h2>🎉 Congratulations! 🎉</h2>
-        <p>You found all the words!</p>
-        <p><strong>Final Score: <span id="finalScore">0</span></strong></p>
-        <button class="btn btn-primary" onclick="closeModal()">Close</button>
-    </div>
-
-    <script>
-        // Puzzle grid data
-        const gridData = [
-            "MDTNFFGFGNSRKYUFAPNJGMMUJREKCM",
-            "MVOGPEHYEAIYTnlcgttpqwsizcmseg",
-            "KMYHIEGULBLFVUROXMMEKXETEOMYCP",
-            "CFCWRLXORRKHENCQMTCDCIIQXNMNDDJ",
-            "AVOTKISSESMVISPYFTOIQCARAMELTV",
-            "RIFUMNJMTEGTZLXUHJMUZCGHXVQSSM",
-            "IRBNEGHIFFWRXVGJWBPZFKKXNVUGUK",
-            "NLFSISFDFXLSACWJYGAPTZBTRXBYAL",
-            "GLRKASFXRSTLTTMCCQSGPLXMEWWBVF",
-            "PUITBBMOIPUKNAEAIJSFQGNFRIAXCI",
-            "VJEKOOEWCJRUPNIFXCIQSLNFICDSKH",
-            "HZNCJNXXLPHTVCGGUSOQWFKLNFLEPE",
-            "ERDJWINDIANALHXFNLNGNQIWKKRKCS",
-            "EUDEGUGRIUXCQIBODLAQCLTCEZWERF",
-            "ZFNPHEQNIXAGVGHFHYTPFAVORITEN T",
-            "GADUHTIN0JDCENDSQSKELECGZMPSKYN",
-            "ZQUBTEVNLZZIXJYQWYYLQJMVNHHLPB",
-            "RLZZKNZSMARTOMRCEGVFKULGLUHTXLZ",
-            "PFPHEIRIHLISVCSMSESX FIGBSSRLZEX",
-            "JOIANKNBHBBTONYGGTSLKOQGSFFUFFCZ",
-            "FKEPTGZDUZNJOQZHWUEYHQTVDDPQFF",
-            "JGEPLTLZSEEQOMZBYATKCDIFRNFNH",
-            "NUFYYRWHKKFVQCNGSMPMQMPGQTJUKCI",
-            "KPEWLYZIKAZAKAUANGTLIHFSVLVPZR",
-            "EUWMVHDDNGLAIAKAPQXSRUSSYQWMJGT",
-            "SLZVHYNTTZOQEGMBCZRDADGWEXWLPF",
-            "DCALIFORNIANQGZQUABQZVUZLNGMOC",
-            "RAHHKXEFRPXDMSOITKLZREQTHKPSJ",
-            "OZWVTBVLFOWDBCNTWVNEZRJLGOPCKQ",
-            "PVWBVDAPTHNNWJPYWSELFLESSAGEWX"
-        ];
-
-        // Words to find with their positions and hints
-        const words = [
-            {
-                word: "PHOENIX",
-                hint: "Name of the city in the state where you and I met for the first time",
-                positions: [[14, 6], [14, 5], [14, 4], [14, 3], [14, 2], [14, 1], [14, 0]]
-            },
-            {
-                word: "CALIFORNIA",
-                hint: "The state where Àdùnní lives, about an hour from Los Angeles",
-                positions: [[26, 2], [26, 3], [26, 4], [26, 5], [26, 6], [26, 7], [26, 8], [26, 9], [26, 10], [26, 11]]
-            },
-            {
-                word: "INDIANA",
-                hint: "The state where your friend and dad live",
-                positions: [[12, 6], [12, 7], [12, 8], [12, 9], [12, 10], [12, 11], [12, 12]]
-            },
-            {
-                word: "KIND",
-                hint: "What is the act of what you did on your birthday called",
-                positions: [[0, 12], [1, 12], [2, 12], [3, 12]]
-            },
-            {
-                word: "SWEET",
-                hint: "Bees produce honey, but my Àdùnní is equally what",
-                positions: [[17, 23], [17, 24], [17, 25], [17, 26], [17, 27]]
-            },
-            {
-                word: "FAVORITE",
-                hint: "I often call you my \"_____ person\" during our conversations",
-                positions: [[14, 18], [14, 19], [14, 20], [14, 21], [14, 22], [14, 23], [14, 24], [14, 25]]
-            },
-            {
-                word: "SMART",
-                hint: "I often regard you as \"_____\", along with being witty and beautiful",
-                positions: [[17, 9], [17, 10], [17, 11], [17, 12], [17, 13]]
-            },
-            {
-                word: "LOVE",
-                hint: "I am in \"_____\" with you",
-                positions: [[0, 19], [1, 19], [2, 19], [3, 19]]
-            },
-            {
-                word: "KISSES",
-                hint: "What do you always want a minimum of two from me",
-                positions: [[4, 5], [4, 6], [4, 7], [4, 8], [4, 9], [4, 10]]
-            },
-            {
-                word: "HAPPY",
-                hint: "How I feel since I met you",
-                positions: [[17, 19], [17, 20], [17, 21], [17, 22], [17, 23]]
-            },
-            {
-                word: "GRATEFUL",
-                hint: "I am \"_____\" to God for bringing you into my life",
-                positions: [[1, 14], [2, 14], [3, 14], [4, 14], [5, 14], [6, 14], [7, 14], [8, 14]]
-            },
-            {
-                word: "TWIN",
-                hint: "You once had a \"_____\" sister",
-                positions: [[0, 23], [1, 23], [2, 23], [3, 23]]
-            },
-            {
-                word: "CARAMEL",
-                hint: "The nickname of your third nibling is \"_____\"",
-                positions: [[4, 20], [4, 21], [4, 22], [4, 23], [4, 24], [4, 25], [4, 26]]
-            },
-            {
-                word: "CUPCAKE",
-                hint: "The nickname of your second nibling is \"_____\"",
-                positions: [[1, 17], [2, 17], [3, 17], [4, 17], [5, 17], [6, 17], [7, 17]]
-            },
-            {
-                word: "COOKIE",
-                hint: "The nickname of your first nibling is \"_____\"",
-                positions: [[2, 17], [3, 17], [4, 17], [5, 17], [6, 17], [7, 17]]
-            },
-            {
-                word: "FRIEND",
-                hint: "What did you introduce Bussy to me as",
-                positions: [[1, 21], [2, 21], [3, 21], [4, 21], [5, 21], [6, 21]]
-            },
-            {
-                word: "TRAVEL",
-                hint: "What you said you like to do a lot, having visited many places",
-                positions: [[17, 25], [18, 25], [19, 25], [20, 25], [21, 25], [22, 25]]
-            },
-            {
-                word: "FOOD",
-                hint: "One of the best things you like is exploring new \"_____\"",
-                positions: [[0, 27], [1, 27], [2, 27], [3, 27]]
-            }
-        ];
-
-        // Game state
-        let selectedCells = [];
-        let foundWords = new Set();
-        let totalAttempts = 0;
-        let successfulAttempts = 0;
-
-        // Initialize the game
-        function initGame() {
-            createGrid();
-            createWordsList();
-            updateScore();
+<script>
+    const puzzleData = {
+        grid: [
+            "LFFWQYWNWKHDEFK", "LTRGRATEFULTCOI", "CARINGBMXUKJOOS", "DIOAEPHEONIXODS",
+            "CCNFVNFBLSNVKFE", "AQKDMEDAWDDQIVS", "LAWSIJLBVJDGEZN", "ICOMPASSIONATEF",
+            "FUMVXUNWJLRXITE", "OPTRMJLAEXOIVNE", "RCWVGXJIUEOVTAL", "NAINHAPPYTTMEEI",
+            "IKNGWSELFLESSPN", "AELFFCARAMELTJG", "SMARTRBYAHINCVS"
+        ],
+        words: {
+            "PHOENIX": "Name of the city in the state where you and I met for the first time",
+            "CALIFORNIA": "The state where Àdùnní lives, about an hour from Los Angeles",
+            "INDIANA": "The state where your friend and dad live",
+            "KIND": "What is the act of what you did on your birthday called",
+            "SWEET": "Bees produce honey, but my Àdùnní is equally what",
+            "FAVORITE": "I often call you my \"_____ person\" during our conversations",
+            "SMART": "I often regard you as \"_____\", along with being witty and beautiful",
+            "LOVE": "I am in \"_____\" with you",
+            "KISSES": "What do you always want a minimum of two from me",
+            "HAPPY": "How I feel since I met you",
+            "GRATEFUL": "I am \"_____\" to God for bringing you into my life",
+            "TWIN": "You once have a \"_____\" sister",
+            "CARAMEL": "The nickname of your third nibling is \"_____\"",
+            "CUPCAKE": "The nickname of your second nibling is \"_____\"",
+            "COOKIE": "The nickname of your first nibling is \"_____\"",
+            "FRIEND": "What did you introduce bussy to me as",
+            "TRAVEL": "What you said she likes to do a lot, having visited many places",
+            "FOOD": "One of the best things you like is exploring new \"_____\""
         }
+    };
 
-        // Create the puzzle grid
-        function createGrid() {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
+    let selectedCells = [];
+    let isMouseDown = false;
+    let score = 0;
+    const foundWords = new Set();
 
-            for (let row = 0; row < 30; row++) {
-                for (let col = 0; col < 30; col++) {
-                    const cell = document.createElement('div');
-                    cell.className = 'cell';
-                    cell.textContent = gridData[row][col];
-                    cell.dataset.row = row;
-                    cell.dataset.col = col;
-                    cell.addEventListener('click', () => selectCell(row, col));
-                    grid.appendChild(cell);
-                }
-            }
-        }
+    function init() {
+        const gridEl = document.getElementById('grid');
+        const hintListEl = document.getElementById('hint-list');
 
-        // Create words list with hints
-        function createWordsList() {
-            const wordsList = document.getElementById('wordsList');
-            wordsList.innerHTML = '';
-
-            words.forEach((wordObj, index) => {
-                const wordItem = document.createElement('div');
-                wordItem.className = 'word-item';
-                wordItem.id = `word-${index}`;
-                wordItem.innerHTML = `
-                    <div class="word-text">${wordObj.word}</div>
-                    <div class="hint-text">${wordObj.hint}</div>
-                `;
-                wordsList.appendChild(wordItem);
+        // Build Grid
+        puzzleData.grid.forEach((row, r) => {
+            row.split('').forEach((char, c) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.textContent = char;
+                cell.dataset.r = r; cell.dataset.c = c;
+                cell.onpointerdown = () => { isMouseDown = true; select(cell); };
+                cell.onpointerenter = () => { if(isMouseDown) select(cell); };
+                gridEl.appendChild(cell);
             });
+        });
+
+        // Build Hints
+        Object.entries(puzzleData.words).forEach(([word, hint]) => {
+            const item = document.createElement('div');
+            item.className = 'hint-item';
+            item.id = `hint-${word}`;
+            item.textContent = hint;
+            hintListEl.appendChild(item);
+        });
+
+        window.onpointerup = checkWord;
+    }
+
+    function select(cell) {
+        if (!cell.classList.contains('found') && !selectedCells.includes(cell)) {
+            cell.classList.add('selected');
+            selectedCells.push(cell);
         }
+    }
 
-        // Select a cell
-        function selectCell(row, col) {
-            const cellKey = `${row}-${col}`;
-            const cellElement = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    function checkWord() {
+        isMouseDown = false;
+        const word = selectedCells.map(c => c.textContent).join('');
+        const revWord = word.split('').reverse().join('');
+        const match = puzzleData.words[word] ? word : (puzzleData.words[revWord] ? revWord : null);
 
-            // Don't select if already found
-            if (cellElement.classList.contains('found')) return;
-
-            const index = selectedCells.findIndex(c => c.key === cellKey);
-
-            if (index !== -1) {
-                // Deselect
-                selectedCells.splice(index, 1);
-                cellElement.classList.remove('selected');
-            } else {
-                // Select
-                selectedCells.push({ row, col, key: cellKey });
-                cellElement.classList.add('selected');
-            }
-
-            // Check if we have a word
-            checkForWord();
-        }
-
-        // Check if selected cells form a word
-        function checkForWord() {
-            if (selectedCells.length < 3) return;
-
-            const selectedWord = selectedCells.map(c =>
-                gridData[c.row][c.col]
-            ).join('').toUpperCase();
-
-            words.forEach((wordObj, index) => {
-                if (foundWords.has(wordObj.word)) return;
-
-                // Check if selected word matches
-                if (selectedWord === wordObj.word || selectedWord === wordObj.word.split('').reverse().join('')) {
-                    // Check if positions match
-                    const positionsMatch = checkPositions(selectedCells, wordObj.positions);
-
-                    if (positionsMatch) {
-                        markWordAsFound(wordObj, index);
-                        totalAttempts++;
-                        successfulAttempts++;
-                    }
-                }
-            });
-
-            // If selection is too long and no match, it's a failed attempt
-            if (selectedCells.length > 12) {
-                totalAttempts++;
-                clearSelection();
-            }
-
-            updateScore();
-        }
-
-        // Check if selected positions match word positions
-        function checkPositions(selected, wordPositions) {
-            if (selected.length !== wordPositions.length) return false;
-
-            const selectedSet = new Set(selected.map(c => `${c.row}-${c.col}`));
-            const wordSet = new Set(wordPositions.map(p => `${p[0]}-${p[1]}`));
-
-            if (selectedSet.size !== wordSet.size) return false;
-
-            for (let pos of selectedSet) {
-                if (!wordSet.has(pos)) return false;
-            }
-
-            return true;
-        }
-
-        // Mark word as found
-        function markWordAsFound(wordObj, index) {
-            foundWords.add(wordObj.word);
-
-            // Mark cells as found
-            selectedCells.forEach(cell => {
-                const cellElement = document.querySelector(`[data-row="${cell.row}"][data-col="${cell.col}"]`);
-                cellElement.classList.remove('selected');
-                cellElement.classList.add('found');
-            });
-
-            // Mark word in list
-            document.getElementById(`word-${index}`).classList.add('found');
-
-            selectedCells = [];
-
-            // Check if all words found
-            if (foundWords.size === words.length) {
-                showCelebration();
-            }
-        }
-
-        // Clear current selection
-        function clearSelection() {
-            selectedCells.forEach(cell => {
-                const cellElement = document.querySelector(`[data-row="${cell.row}"][data-col="${cell.col}"]`);
-                cellElement.classList.remove('selected');
-            });
-            selectedCells = [];
-        }
-
-        // Update score display
-        function updateScore() {
-            const score = foundWords.size * 100;
-            const accuracy = totalAttempts === 0 ? 100 : Math.round((successfulAttempts / totalAttempts) * 100);
-
-            document.getElementById('wordsFound').textContent = `${foundWords.size} / ${words.length}`;
+        if (match && !foundWords.has(match)) {
+            selectedCells.forEach(c => { c.classList.remove('selected'); c.classList.add('found'); });
+            foundWords.add(match);
+            document.getElementById(`hint-${match}`).classList.add('completed');
+            score += 100;
             document.getElementById('score').textContent = score;
-            document.getElementById('accuracy').textContent = `${accuracy}%`;
+            document.getElementById('found-count').textContent = foundWords.size;
+        } else {
+            selectedCells.forEach(c => c.classList.remove('selected'));
         }
+        selectedCells = [];
+    }
 
-        // Show celebration modal
-        function showCelebration() {
-            const finalScore = foundWords.size * 100;
-            document.getElementById('finalScore').textContent = finalScore;
-            document.getElementById('overlay').classList.add('show');
-            document.getElementById('celebration').classList.add('show');
-        }
-
-        // Close celebration modal
-        function closeModal() {
-            document.getElementById('overlay').classList.remove('show');
-            document.getElementById('celebration').classList.remove('show');
-        }
-
-        // Reset game
-        function resetGame() {
-            selectedCells = [];
-            foundWords = new Set();
-            totalAttempts = 0;
-            successfulAttempts = 0;
-
-            // Reset all cells
-            document.querySelectorAll('.cell').forEach(cell => {
-                cell.classList.remove('selected', 'found');
-            });
-
-            // Reset word items
-            document.querySelectorAll('.word-item').forEach(item => {
-                item.classList.remove('found');
-            });
-
-            updateScore();
-        }
-
-        // Initialize game on load
-        initGame();
-    </script>
+    init();
+</script>
 </body>
 </html>
