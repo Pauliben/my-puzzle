@@ -3,59 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Love Me - Interactive Puzzle</title>
+    <title>💝 Love Me - Interactive Puzzle</title>
     <style>
-        :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --accent: #ff6b6b;
-            --bg: #f8f9fa;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
             min-height: 100vh;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
-            margin: 0;
+            position: relative;
+            overflow-x: hidden;
         }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(10deg); opacity: 0.6; }
+        }
+
+        .hearts-bg {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+
+        .heart {
+            position: absolute;
+            font-size: 30px;
+            animation: float 6s ease-in-out infinite;
+            opacity: 0.3;
+        }
+
         .container {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            max-width: 1200px;
+            background: rgba(255,255,255,0.98);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 950px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255,255,255,0.5);
         }
-        .header { text-align: center; }
+
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 3.2em;
+            font-family: 'Pacifico', cursive;
+            animation: pulse 2s ease-in-out infinite;
+            margin-bottom: 8px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 25px;
+            font-size: 1.1em;
+            font-weight: 300;
+        }
+
         .stats-bar {
             display: flex;
             justify-content: space-around;
-            background: #f1f3f5;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(102,126,234,0.4);
         }
+
+        .stats-bar span { font-size: 1em; }
+        .stats-bar .val { font-size: 1.3em; font-weight: 700; }
+
+        .progress-bar-container {
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00b894, #00cec9);
+            transition: width 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+            border-radius: 10px;
+        }
+
         .main-content {
             display: grid;
-            grid-template-columns: 1fr 350px;
+            grid-template-columns: 1fr 340px;
             gap: 30px;
         }
+
         #grid {
             display: grid;
             grid-template-columns: repeat(15, 1fr);
-            gap: 5px;
-            background: #e9ecef;
-            padding: 10px;
-            border-radius: 12px;
+            gap: 4px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 15px;
+            border-radius: 20px;
             user-select: none;
             touch-action: none;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.08);
         }
+
         .cell {
             aspect-ratio: 1;
             background: white;
@@ -63,69 +132,299 @@
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 1.1rem;
-            border-radius: 6px;
+            font-size: 1rem;
+            border-radius: 7px;
             cursor: pointer;
-            transition: all 0.2s;
+            border: 2px solid #e0e0e0;
+            transition: all 0.25s cubic-bezier(0.68,-0.55,0.265,1.55);
         }
-        .cell.selected { background: var(--accent); color: white; transform: scale(0.9); }
-        .cell.found { background: #51cf66; color: white; }
-        
+
+        .cell:hover {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            transform: scale(1.12);
+            box-shadow: 0 4px 12px rgba(253,203,110,0.5);
+            z-index: 5;
+        }
+
+        .cell.selected {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            border-color: #f39c12;
+            transform: scale(1.08);
+            box-shadow: 0 4px 12px rgba(243,156,18,0.5);
+            animation: wiggle 0.4s ease;
+        }
+
+        @keyframes wiggle {
+            0%,100% { transform: scale(1.08) rotate(0deg); }
+            25% { transform: scale(1.08) rotate(-5deg); }
+            75% { transform: scale(1.08) rotate(5deg); }
+        }
+
+        .cell.found {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            border-color: #00b894;
+            transform: scale(1.08);
+            box-shadow: 0 6px 18px rgba(0,184,148,0.5);
+            animation: foundPop 0.6s cubic-bezier(0.68,-0.55,0.265,1.55);
+        }
+
+        @keyframes foundPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1.08); opacity: 1; }
+        }
+
         .hints-panel {
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
             padding: 20px;
-            border-radius: 12px;
-            max-height: 550px;
+            border-radius: 20px;
+            max-height: 560px;
             overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
+
+        .hints-panel::-webkit-scrollbar { width: 7px; }
+        .hints-panel::-webkit-scrollbar-track { background: rgba(255,255,255,0.5); border-radius: 10px; }
+        .hints-panel::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+
+        .hints-panel h3 {
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.3em;
+            font-family: 'Pacifico', cursive;
+        }
+
         .hint-item {
-            margin-bottom: 12px;
-            padding: 10px;
-            border-left: 4px solid var(--primary);
+            padding: 12px 14px;
+            margin-bottom: 10px;
             background: white;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            transition: 0.3s;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+            color: #444;
         }
+
+        .hint-item:hover {
+            transform: translateX(4px);
+            box-shadow: 0 5px 18px rgba(102,126,234,0.2);
+        }
+
         .hint-item.completed {
-            border-left-color: #51cf66;
-            opacity: 0.6;
-            text-decoration: line-through;
-            background: #f4fce3;
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            border-color: #00b894;
+            animation: foundWord 0.6s cubic-bezier(0.68,-0.55,0.265,1.55);
         }
+
+        .hint-item.completed::before {
+            content: '✓ ';
+            font-weight: 700;
+        }
+
+        @keyframes foundWord {
+            0% { transform: scale(1) rotate(0); }
+            25% { transform: scale(1.08) rotate(-4deg); }
+            75% { transform: scale(1.08) rotate(4deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px; height: 10px;
+            animation: confetti-fall 3s linear;
+            z-index: 1001;
+        }
+
+        @keyframes confetti-fall {
+            to { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75);
+            z-index: 999;
+            backdrop-filter: blur(6px);
+        }
+        .overlay.show { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* I Love You Popup */
+        .love-popup {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 50px 55px;
+            border-radius: 30px;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+            text-align: center;
+            z-index: 1000;
+            max-width: 520px;
+            width: 90%;
+            border: 4px solid transparent;
+            background-clip: padding-box;
+            position: fixed;
+        }
+
+        .love-popup::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 34px;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #ff6b6b);
+            z-index: -1;
+        }
+
+        .love-popup.show {
+            display: block;
+            animation: popIn 0.9s cubic-bezier(0.68,-0.55,0.265,1.55);
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-180deg); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .love-popup .big-heart {
+            font-size: 5em;
+            display: block;
+            animation: heartbeat 1s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+
+        @keyframes heartbeat {
+            0%,100% { transform: scale(1); }
+            14% { transform: scale(1.3); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.2); }
+            70% { transform: scale(1); }
+        }
+
+        .love-popup h2 {
+            font-family: 'Pacifico', cursive;
+            font-size: 3em;
+            background: linear-gradient(135deg, #ff6b6b, #f093fb, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            animation: rainbow 3s ease infinite;
+        }
+
+        @keyframes rainbow {
+            0%,100% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(30deg); }
+        }
+
+        .love-popup .love-message {
+            font-size: 1.15em;
+            color: #555;
+            line-height: 1.7;
+            margin-bottom: 25px;
+        }
+
+        .love-popup .final-score {
+            font-size: 1.6em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+        }
+
+        .btn-love {
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #ff6b6b, #f093fb);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s cubic-bezier(0.68,-0.55,0.265,1.55);
+            box-shadow: 0 8px 25px rgba(240,147,251,0.5);
+        }
+
+        .btn-love:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(240,147,251,0.6);
+        }
+
         @media (max-width: 900px) {
             .main-content { grid-template-columns: 1fr; }
-            #grid { grid-template-columns: repeat(15, 25px); overflow-x: auto; }
-            .cell { width: 25px; height: 25px; font-size: 0.8rem; }
+            #grid { grid-template-columns: repeat(15, 1fr); }
+            .cell { font-size: 0.8rem; }
+            h1 { font-size: 2.3em; }
+        }
+
+        @media (max-width: 500px) {
+            .container { padding: 20px; }
+            .cell { font-size: 0.65rem; }
+            h1 { font-size: 1.8em; }
         }
     </style>
 </head>
 <body>
 
+<div class="hearts-bg" id="heartsBackground"></div>
+
 <div class="container">
-    <div class="header">
-        <h1>Love Me Puzzle</h1>
-        <p>Find the hidden words using the hints below!</p>
-    </div>
+    <h1>💝 Love Me 💝</h1>
+    <p class="subtitle">✨ Find the hidden words using the hints below! ✨</p>
 
     <div class="stats-bar">
-        <span>Words Found: <span id="found-count">0</span> / 18</span>
-        <span>Score: <span id="score">0</span></span>
+        <span>Words Found: <span class="val" id="found-count">0</span> / 18</span>
+        <span>Score: <span class="val" id="score">0</span></span>
+    </div>
+    <div class="progress-bar-container" style="margin-bottom:25px;">
+        <div class="progress-bar" id="progressBar" style="width:0%;"></div>
     </div>
 
     <div class="main-content">
         <div id="grid"></div>
         <div class="hints-panel">
-            <h3>Hints</h3>
+            <h3>📝 Hints</h3>
             <div id="hint-list"></div>
         </div>
     </div>
 </div>
 
+<div class="overlay" id="overlay"></div>
+
+<!-- I Love You Popup -->
+<div class="love-popup" id="lovePopup">
+    <span class="big-heart">💖</span>
+    <h2>I Love You!</h2>
+    <p class="love-message">
+        You found every single word — just like you've found your way into my heart. 💕<br><br>
+        You are my favourite person, my sweet Àdùnní, and I am so grateful for you.
+    </p>
+    <div class="final-score">🌟 Final Score: <span id="finalScore">0</span> 🌟</div>
+    <button class="btn-love" onclick="closePopup()">💝 Aww, Thank You!</button>
+</div>
+
 <script>
     const puzzleData = {
         grid: [
-            "LFFWQYWNWKHDEFK", "LTRGRATEFULTCOI", "CARINGBMXUKJOOS", "DIOAEPHEONIXODS",
+            "LFFWQYWNWKHDEFK", "LTRGRATEFULTCOI", "CARINGBMXUKJOOS", "DIOAEPHOENIXODS",
             "CCNFVNFBLSNVKFE", "AQKDMEDAWDDQIVS", "LAWSIJLBVJDGEZN", "ICOMPASSIONATEF",
             "FUMVXUNWJLRXITE", "OPTRMJLAEXOIVNE", "RCWVGXJIUEOVTAL", "NAINHAPPYTTMEEI",
             "IKNGWSELFLESSPN", "AELFFCARAMELTJG", "SMARTRBYAHINCVS"
@@ -156,25 +455,26 @@
     let isMouseDown = false;
     let score = 0;
     const foundWords = new Set();
+    const TOTAL_WORDS = Object.keys(puzzleData.words).length;
 
     function init() {
+        createFloatingHearts();
         const gridEl = document.getElementById('grid');
         const hintListEl = document.getElementById('hint-list');
 
-        // Build Grid
         puzzleData.grid.forEach((row, r) => {
             row.split('').forEach((char, c) => {
                 const cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.textContent = char;
-                cell.dataset.r = r; cell.dataset.c = c;
+                cell.dataset.r = r;
+                cell.dataset.c = c;
                 cell.onpointerdown = () => { isMouseDown = true; select(cell); };
-                cell.onpointerenter = () => { if(isMouseDown) select(cell); };
+                cell.onpointerenter = () => { if (isMouseDown) select(cell); };
                 gridEl.appendChild(cell);
             });
         });
 
-        // Build Hints
         Object.entries(puzzleData.words).forEach(([word, hint]) => {
             const item = document.createElement('div');
             item.className = 'hint-item';
@@ -184,6 +484,21 @@
         });
 
         window.onpointerup = checkWord;
+    }
+
+    function createFloatingHearts() {
+        const container = document.getElementById('heartsBackground');
+        const hearts = ['💖', '💝', '💗', '💓', '💕', '💞'];
+        for (let i = 0; i < 14; i++) {
+            const heart = document.createElement('div');
+            heart.className = 'heart';
+            heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+            heart.style.left = Math.random() * 100 + '%';
+            heart.style.top = Math.random() * 100 + '%';
+            heart.style.animationDelay = Math.random() * 6 + 's';
+            heart.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            container.appendChild(heart);
+        }
     }
 
     function select(cell) {
@@ -206,10 +521,43 @@
             score += 100;
             document.getElementById('score').textContent = score;
             document.getElementById('found-count').textContent = foundWords.size;
+            document.getElementById('progressBar').style.width = (foundWords.size / TOTAL_WORDS * 100) + '%';
+            createConfetti();
+
+            if (foundWords.size === TOTAL_WORDS) {
+                setTimeout(showLovePopup, 600);
+            }
         } else {
             selectedCells.forEach(c => c.classList.remove('selected'));
         }
         selectedCells = [];
+    }
+
+    function createConfetti() {
+        const colors = ['#667eea','#764ba2','#f093fb','#00b894','#00cec9','#fdcb6e','#ff6b6b'];
+        for (let i = 0; i < 30; i++) {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.left = Math.random() * 100 + '%';
+            c.style.top = '-10px';
+            c.style.background = colors[Math.floor(Math.random() * colors.length)];
+            c.style.animationDelay = Math.random() * 0.5 + 's';
+            c.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 3000);
+        }
+    }
+
+    function showLovePopup() {
+        document.getElementById('finalScore').textContent = score;
+        document.getElementById('overlay').classList.add('show');
+        document.getElementById('lovePopup').classList.add('show');
+        for (let i = 0; i < 3; i++) setTimeout(createConfetti, i * 600);
+    }
+
+    function closePopup() {
+        document.getElementById('overlay').classList.remove('show');
+        document.getElementById('lovePopup').classList.remove('show');
     }
 
     init();
